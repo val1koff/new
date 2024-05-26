@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простая Система Авторизации и Аутентификации</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: url('https://images.alphacoders.com/668/thumb-1920-668126.png') no-repeat center center fixed;
+            background-size: cover;
+        }
+        .form-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 350px;
+            position: relative;
+        }
+        .form-container h2 {
+            margin-bottom: 20px;
+            color: #0056b3;
+        }
+        input, button, select {
+            width: calc(100% - 20px);
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        input, select {
+            border: 1px solid #ccc;
+            background: #fff;
+        }
+        button {
+            background-color: #0056b3;
+            color: white;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #004494;
+        }
+        #welcome-message, #profile-message, #admin-message, #secret-info {
+            display: none;
+            text-align: left;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            overflow: auto;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .small-link {
+            display: block;
+            margin-top: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            color: #0056b3;
+        }
+        .small-link:hover {
+            text-decoration: underline;
+        }
+        #role-content {
+            margin-top: 20px;
+            text-align: center;
+        }
+        #role-content img {
+            width: 300px;
+            height: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        #admin-code {
+            display: none;
+        }
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            margin-left: -125px;
+            background-color: #333;
+            color: #fff;
+            text-align: center;
+            border-radius: 2px;
+            padding: 16px;
+            position: fixed;
+            z-index: 1;
+            left: 50%;
+            bottom: 30px;
+            font-size: 17px;
+        }
+        #toast.show {
+            visibility: visible;
+            -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+            animation: fadein 0.5s, fadeout 0.5s 2.5s;
+        }
+        @-webkit-keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @keyframes fadein {
+            from {bottom: 0; opacity: 0;}
+            to {bottom: 30px; opacity: 1;}
+        }
+        @-webkit-keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        @keyframes fadeout {
+            from {bottom: 30px; opacity: 1;}
+            to {bottom: 0; opacity: 0;}
+        }
+        #profile-message, #admin-message, #secret-info {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 350px;
+            position: relative;
+        }
+        #profile-message h2, #admin-message h2, #secret-info h2 {
+            margin-bottom: 20px;
+            color: #0056b3;
+        }
+        #profile-message p, #admin-message p, #secret-info p {
+            text-align: left;
+            margin: 10px 0;
+        }
+        #profile-message button, #admin-message button, #secret-info button {
+            margin-top: 20px;
+        }
+        #admin-user-form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #admin-user-form input, #admin-user-form select {
+            margin: 5px;
+            width: calc(100% - 10px);
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div id="login-form" class="form-container">
+        <h2>Авторизация</h2>
+        <input type="text" id="login-username" placeholder="Логин"><br>
+        <input type="password" id="login-password" placeholder="Пароль"><br>
+        <button onclick="login()">Войти</button>
+        <span class="small-link" onclick="showToast('Восстановление пароля недоступно')">Забыли пароль?</span>
+        <span class="small-link" onclick="showRegistration()">Регистрация</span>
+    </div>
+    <div id="registration-form" class="form-container" style="display: none;">
+        <h2>Регистрация</h2>
+        <input type="text" id="register-username" placeholder="Логин"><br>
+        <input type="password" id="register-password" placeholder="Пароль"><br>
+        <select id="register-role">
+            <option value="user">Пользователь</option>
+            <option value="admin">Администратор</option>
+        </select><br>
+        <input type="password" id="admin-code" placeholder="Код доступа для администратора"><br>
+        <button onclick="register()">Зарегистрироваться</button>
+        <span class="small-link" onclick="showLogin()">Уже есть аккаунт? Войти</span>
+    </div>
+    <div id="welcome-message">
+        <h2>Добро пожаловать, <span id="user"></span>!</h2>
+        <p id="role-message"></p>
+        <div id="role-content"></div>
+        <button onclick="showProfile()">Профиль</button>
+        <button onclick="logout()">Выход</button>
+        <button onclick="showAdminPanel()" id="admin-panel-btn" style="display: none;">Панель Администратора</button>
+        <button onclick="showSecretInfo()" id="secret-info-btn" style="display: none;">Moon</button>
+    </div>
+    <div id="profile-message">
+        <h2>Профиль пользователя: <span id="profile-user"></span></h2>
+        <p><strong>Логин:</strong> <span id="profile-username"></span></p>
+        <p><strong>Роль:</strong> <span id="profile-role"></span></p>
+        <input type="password" id="new-password" placeholder="Новый пароль"><br>
+        <button onclick="changePassword()">Сменить пароль</button>
+        <button onclick="showWelcome()">Назад</button>
+    </div>
+    <div id="admin-message">
+        <h2>Панель Администратора</h2>
+        <p>Управление пользователями</p>
+        <ul id="user-list"></ul>
+        <div id="admin-user-form">
+            <input type="text" id="admin-username" placeholder="Логин пользователя">
+            <input type="password" id="admin-password" placeholder="Пароль пользователя">
+            <select id="admin-role">
+                <option value="user">Пользователь</option>
+                <option value="admin">Администратор</option>
+            </select>
+            <button onclick="addUser()">Добавить пользователя</button>
+        </div>
+        <button onclick="showWelcome()">Назад</button>
+    </div>
+    <div id="secret-info">
+        <h2> 1 </h2>
+        <p>Это скрытая информация, доступная только администратору.</p>
+        <p> map. </p>
+        <button onclick="showWelcome()">Назад</button>
+    </div>
+    <div id="toast"></div>
+    <script>
+        var users = JSON.parse(localStorage.getItem('users')) || [];
+        const adminAccessCode = "admin1234"; // Код доступа для регистрации администратора
+        const specialUser = "specialUser"; // Имя пользователя, который имеет доступ к специальному контенту
+
+        // Добавление пользователя admin
+        if (!users.find(u => u.username === "admin")) {
+            users.push({ username: "admin", password: "admin", role: "admin" });
+            localStorage.setItem('users', JSON.stringify(users));
+        }
+
+        document.getElementById("register-role").addEventListener("change", function() {
+            var adminCodeInput = document.getElementById("admin-code");
+            if (this.value === "admin") {
+                adminCodeInput.style.display = "block";
+            } else {
+                adminCodeInput.style.display = "none";
+            }
+        });
+
+        function login() {
+            var username = document.getElementById("login-username").value;
+            var password = document.getElementById("login-password").value;
+
+            var user = users.find(u => u.username === username && u.password === password);
+
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                document.getElementById("login-form").style.display = "none";
+                document.getElementById("registration-form").style.display = "none";
+                document.getElementById("welcome-message").style.display = "block";
+                document.getElementById("user").textContent = username;
+
+                var roleMessage = '';
+                var roleContent = '';
+                if (user.role === "admin") {
+                    roleMessage = "У вас есть доступ к административной части.";
+                    roleContent = '<img src="https://images3.alphacoders.com/132/thumb-1920-1324452.png" alt="Администратор">';
+                    document.getElementById("admin-panel-btn").style.display = "block";
+                    document.getElementById("secret-info-btn").style.display = "block";
+                } else if (user.username === specialUser) {
+                    roleMessage = "Вы вошли как специальный пользователь.";
+                    roleContent = '<img src="https://images2.alphacoders.com/598/thumb-1920-598673.jpg" alt="Специальный пользователь">';
+                } else {
+                    roleMessage = "Вы вошли как обычный пользователь.";
+                    roleContent = '<img src="https://images2.alphacoders.com/598/thumb-1920-598673.jpg" alt="Пользователь">';
+                }
+                document.getElementById("role-message").textContent = roleMessage;
+                document.getElementById("role-content").innerHTML = roleContent;
+            } else {
+                showToast("Неверный логин или пароль!");
+            }
+        }
+
+        function register() {
+            var username = document.getElementById("register-username").value;
+            var password = document.getElementById("register-password").value;
+            var role = document.getElementById("register-role").value;
+            var adminCode = document.getElementById("admin-code").value;
+
+            if (users.find(u => u.username === username)) {
+                showToast("Пользователь с таким логином уже существует!");
+            } else {
+                if (role === "admin" && adminCode !== adminAccessCode) {
+                    showToast("Неверный код доступа для администратора!");
+                    return;
+                }
+                users.push({ username, password, role });
+                localStorage.setItem('users', JSON.stringify(users));
+                showToast("Регистрация успешна!", "success");
+                showLogin();
+            }
+        }
+
+        function showLogin() {
+            document.getElementById("login-form").style.display = "block";
+            document.getElementById("registration-form").style.display = "none";
+        }
+
+        function showRegistration() {
+            document.getElementById("login-form").style.display = "none";
+            document.getElementById("registration-form").style.display = "block";
+        }
+
+        function logout() {
+            localStorage.removeItem('currentUser');
+            document.getElementById("welcome-message").style.display = "none";
+            document.getElementById("admin-panel-btn").style.display = "none";
+            document.getElementById("secret-info-btn").style.display = "none";
+            showLogin();
+            document.getElementById("login-username").value = '';
+            document.getElementById("login-password").value = '';
+        }
+
+        function showToast(message, type = "error") {
+            var toast = document.getElementById("toast");
+            toast.className = "show";
+            toast.style.backgroundColor = type === "success" ? "#28a745" : "#333";
+            toast.textContent = message;
+            setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
+        }
+
+        function showProfile() {
+            var currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            document.getElementById("welcome-message").style.display = "none";
+            document.getElementById("profile-message").style.display = "block";
+            document.getElementById("profile-user").textContent = currentUser.username;
+            document.getElementById("profile-username").textContent = currentUser.username;
+            document.getElementById("profile-role").textContent = currentUser.role;
+        }
+
+        function showWelcome() {
+            document.getElementById("profile-message").style.display = "none";
+            document.getElementById("admin-message").style.display = "none";
+            document.getElementById("secret-info").style.display = "none";
+            document.getElementById("welcome-message").style.display = "block";
+        }
+
+        function changePassword() {
+            var newPassword = document.getElementById("new-password").value;
+            var currentUser = JSON.parse(localStorage.getItem('currentUser'));
+
+            if (newPassword) {
+                users = users.map(u => {
+                    if (u.username === currentUser.username) {
+                        return { ...u, password: newPassword };
+                    }
+                    return u;
+                });
+                localStorage.setItem('users', JSON.stringify(users));
+                showToast("Пароль успешно изменен!", "success");
+                document.getElementById("new-password").value = '';
+            } else {
+                showToast("Введите новый пароль!", "error");
+            }
+        }
+
+        function showAdminPanel() {
+            var userList = document.getElementById("user-list");
+            userList.innerHTML = '';
+
+            users.forEach(user => {
+                var li = document.createElement("li");
+                li.textContent = `${user.username} (${user.role})`;
+                var deleteUserBtn = document.createElement("button");
+                deleteUserBtn.textContent = "Удалить";
+                deleteUserBtn.onclick = function() {
+                    deleteUser(user.username);
+                };
+                li.appendChild(deleteUserBtn);
+                userList.appendChild(li);
+            });
+
+            document.getElementById("welcome-message").style.display = "none";
+            document.getElementById("admin-message").style.display = "block";
+        }
+
+        function addUser() {
+            var username = document.getElementById("admin-username").value;
+            var password = document.getElementById("admin-password").value;
+            var role = document.getElementById("admin-role").value;
+
+            if (users.find(u => u.username === username)) {
+                showToast("Пользователь с таким логином уже существует!");
+            } else {
+                users.push({ username, password, role });
+                localStorage.setItem('users', JSON.stringify(users));
+                showToast("Пользователь успешно добавлен!", "success");
+                showAdminPanel();
+            }
+        }
+
+        function deleteUser(username) {
+            users = users.filter(u => u.username !== username);
+            localStorage.setItem('users', JSON.stringify(users));
+            showToast("Пользователь удален!", "success");
+            showAdminPanel();
+        }
+
+        function showSecretInfo() {
+            document.getElementById("welcome-message").style.display = "none";
+            document.getElementById("secret-info").style.display = "block";
+        }
+    </script>
+</body>
+</html>
